@@ -1,0 +1,136 @@
+name: 펫 설명 및 피해 시스템 정리
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  refactor:
+    if: "!contains(github.event.head_commit.message, '[코드정리완료]')"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: 코드 정리 및 펫 설명 정리
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+
+          p = Path('www/index.html')
+          s = p.read_text(encoding='utf-8')
+          js = Path('www/js')
+          js.mkdir(parents=True, exist_ok=True)
+
+          # 1) 펫 데이터 분리: PET_GRADES/PET_PRESETS는 별도 파일에서 관리
+          if not Path('www/js/pet-data.js').exists():
+              a = s.find('const PET_GRADES = [')
+              b = s.find('const MONSTER_TITLES = [', a)
+              if a < 0 or b < 0:
+                  raise SystemExit('펫 데이터 영역을 찾지 못했습니다.')
+              block = s[a:b]
+              Path('www/js/pet-data.js').write_text('/* 펫 데이터 */\n' + block, encoding='utf-8')
+              s = s[:a] + '/* 펫 데이터는 js/pet-data.js에서 관리합니다. */\n' + s[b:]
+
+          # 2) 피해 분류/기록 시스템 분리
+          if not Path('www/js/damage-system.js').exists():
+              marker = '/* =========================================================\n   DAMAGE TAXONOMY'
+              a = s.find(marker)
+              b = s.find('function calcAtk(){', a)
+              if a < 0 or b < 0:
+                  raise SystemExit('피해 계산 영역을 찾지 못했습니다.')
+              block = s[a:b]
+              Path('www/js/damage-system.js').write_text('/* 피해 계산 분류/기록 시스템 */\n' + block, encoding='utf-8')
+              s = s[:a] + '/* 피해 계산 분류/기록 시스템은 js/damage-system.js에서 관리합니다. */\n' + s[b:]
+
+          # 3) 외부 데이터/피해 모듈을 본체보다 먼저 불러오기
+          marker = '<script>\n/* DATA DEFINITIONS */'
+          tags = '<script src="js/pet-data.js"></script>\n<script src="js/damage-system.js"></script>\n'
+          if 'src="js/pet-data.js"' not in s:
+              if marker not in s:
+                  raise SystemExit('메인 스크립트 시작점을 찾지 못했습니다.')
+              s = s.replace(marker, tags + marker, 1)
+
+          # 4) 화면용 펫 설명은 능력/수치/조건만 표시
+          descriptions = {
+            'pet_cat':'몬스터 처치 시 18% 확률로 골드를 2배 획득합니다.',
+            'pet_chick':'몬스터 처치 시 20% 확률로 생명의 정수 2개를 추가 획득합니다.',
+            'pet_rabbit':'전투 중 처음 체력이 20% 이하가 되면 최대 체력의 25%까지 회복합니다. 전투당 1회 발동합니다.',
+            'pet_mouse':'잡템 획득 시 22% 확률로 같은 잡템을 1개 추가 획득합니다.',
+            'pet_dog':'전투 시작 후 첫 번째 플레이어 공격의 피해가 25% 증가합니다.',
+            'pet_fox':'치명타 확률이 6% 증가합니다.',
+            'pet_sloth':'적의 세 번째 공격마다 받는 피해가 35% 감소합니다.',
+            'pet_pig':'잡템 판매 금액이 18% 증가합니다.',
+            'pet_wolf':'세 번째 플레이어 공격마다 공격력의 120%만큼 추가 피해를 줍니다.',
+            'pet_turtle':'적에게 받는 피해가 18% 감소합니다.',
+            'pet_owl':'전투 경험치 획득량이 15% 증가합니다.',
+            'pet_panda':'가한 피해의 2%만큼 체력을 회복합니다.',
+            'pet_panther':'네 번째 플레이어 공격마다 공격력의 30%만큼 추가 피해를 줍니다.',
+            'pet_dragon_baby':'공격 시 24% 확률로 적 최대 체력의 4%만큼 추가 피해를 줍니다. 보스에게는 최대 체력의 1.5%가 적용됩니다.',
+            'pet_lion':'보스에게 가하는 피해가 22% 증가합니다.',
+            'pet_eagle':'세 번째 플레이어 공격마다 공격력의 22%만큼 추가 피해를 줍니다.',
+            'pet_frost_mimic':'처음 받는 적의 공격과 이후 여섯 번째 적 공격마다 받는 피해가 70% 감소합니다.',
+            'pet_treasure_goblin':'몬스터 처치 시 18% 확률로 골드를 3배 획득합니다.',
+            'pet_berserk_hamster':'체력이 최대 체력의 30% 이하일 때 기본 공격 피해가 18% 증가합니다.',
+            'pet_mirror_fox':'적의 다섯 번째 공격 피해를 70% 감소시키고 다음 플레이어 공격 피해를 70% 증가시킵니다.',
+            'myth_iron_dragon':'공격력이 75% 증가합니다.',
+            'myth_world_tree':'최대 체력이 120% 증가합니다.',
+            'myth_sky_emperor':'치명타 피해가 100% 증가합니다.',
+            'myth_fate_book':'전투 경험치 획득량이 80% 증가합니다.',
+            'origin_meteor':'적의 세 번째 공격마다 받는 피해가 45% 감소합니다.',
+            'origin_chaos':'체력이 최대 체력의 50% 이하일 때 받는 피해가 40% 감소합니다.',
+            'origin_star':'적에게 받는 모든 피해가 20% 감소합니다.',
+            'absolute_void':'같은 적을 연속 공격할 때마다 펫 피해가 25%씩 증가하며 최대 10회 중첩됩니다. 10중첩 후 다음 공격은 플레이어 피해의 1000%를 추가로 줍니다.',
+            'absolute_executioner':'적 체력이 30% 이하일 때 플레이어 피해의 1000%를 고정 피해로 추가합니다.',
+            'absolute_barrage':'두 번째 플레이어 공격마다 플레이어 피해의 60%를 6회 추가 타격으로 줍니다.',
+            'absolute_crit':'공격 피해의 50%를 저장합니다. 저장량이 최대 체력의 100%에 도달하면 저장량의 100%를 추가 피해로 방출합니다.',
+            'pet_zero':'1~5번 공격이 순서대로 반복되며 각 공격마다 고유한 추가 피해와 회복 효과가 발동합니다.',
+            'zero1':'플레이어의 직접 공격을 복제합니다. 첫 복제 확률은 100%이며 복제 피해는 원래 공격의 70%입니다. 이후 복제마다 확률이 10%p 감소합니다.',
+            'alpha_zero':'치명적인 피해를 처음 받을 때 피해를 무효화하고 전투 시작 시 체력으로 되돌립니다. 전투당 1회 발동합니다.',
+            'zero999':'치명적인 피해를 받을 상황에서 9회 연속 공격합니다. 1~8타는 적 최대 체력의 1% + 공격력의 10%, 9타는 적 최대 체력의 5% + 공격력의 300% 피해를 줍니다.',
+            'zeroOmega':'받는 피해의 40%를 흡수해 저장하고 다음 일반 공격 시 저장량의 200%를 추가 피해로 반사합니다. 최대 체력이 80% 증가합니다.',
+            'gold_slime':'공격할 때마다 금화 중첩을 얻습니다. 최대 5중첩이며 중첩마다 공격력이 12% 증가합니다. 세 번째 공격마다 금화 충격파를 발동합니다.',
+            'gold_goblin':'네 번째 공격마다 공격력의 250% 추가 피해를 주고 스테이지 × 10골드를 획득합니다.',
+            'gold_mimic':'공격마다 20% 확률로 공격력의 500% 추가 피해를 줍니다. 해당 공격으로 처치하면 처치 골드가 3배가 됩니다.',
+            'gold_roulette':'전투 시작 시 룰렛을 돌려 최종 피해와 처치 보너스를 결정합니다.'
+          }
+
+          def replace_desc(src, pid, desc):
+              pattern = r"(id:'" + re.escape(pid) + r"'[^\n]*?desc:')[^']*(')"
+              return re.sub(pattern, lambda m: m.group(1) + desc.replace("'", "\\'") + m.group(2), src, count=1)
+
+          for pid, desc in descriptions.items():
+              s = replace_desc(s, pid, desc)
+
+          # 설명에 남아 있는 태초/신화의 불필요한 '방어력' 문구는 실제 능력에 없는 경우 제거.
+          # origin_chaos/origin_star/origin_meteor는 현재 코드상 받는 피해 감소만 설명한다.
+          for pid in ('origin_meteor','origin_chaos','origin_star'):
+              pass
+
+          # renderPetList가 p.desc 대신 화면용 설명을 사용하도록 함수 추가
+          if 'function getPetDisplayDescription(p)' not in s:
+              helper = '''\nconst PET_DISPLAY_DESCRIPTIONS = ''' + repr(descriptions).replace("'", '"') + ''';\nfunction getPetDisplayDescription(p){\n  if(PET_DISPLAY_DESCRIPTIONS[p.id]) return PET_DISPLAY_DESCRIPTIONS[p.id];\n  return String(p.desc||"").split(/(?<=[.!?])\\s+/).slice(0,2).join(" ");\n}\n'''
+              pos = s.find('function renderPetList(){')
+              if pos < 0: raise SystemExit('renderPetList를 찾지 못했습니다.')
+              s = s[:pos] + helper + s[pos:]
+          s = s.replace('${p.desc}</div>', '${getPetDisplayDescription(p)}</div>')
+
+          p.write_text(s, encoding='utf-8')
+          PY
+
+      - name: 변경사항 커밋
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add www/index.html www/js/pet-data.js www/js/damage-system.js
+          if git diff --cached --quiet; then
+            echo "변경사항 없음"
+            exit 0
+          fi
+          git commit -m "펫 설명 및 피해 시스템 코드 정리 [코드정리완료]"
+          git push
