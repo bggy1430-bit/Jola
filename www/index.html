@@ -5916,7 +5916,7 @@ function renderAwakening(){
   const rows=[];
   ['weapon','helmet','armor','gloves','accessory'].forEach(k=>{
     const it=S.equip[k]; if(!it)return;
-    const lv=Math.min(3,it.awakening||0); const awakeningCosts=[10000,50000,100000]; const cost=awakeningCosts[lv]||100000;
+    const lv=Math.min(3,it.awakening||0); const awakeningCosts=[10000,50000,100000]; const cost=Math.floor((awakeningCosts[lv]||100000)*5);
     const power=it.grade>=15 ? ' · 고유 권능도 각성 단계에 따라 강화됩니다.' : '';
     const disabled=(lv>=3||S.soulStones<cost)?'disabled':'';
     const label=lv>=3?'최대 각성':'🌠 각성 · '+fmt(cost)+' 영혼석';
