@@ -2148,16 +2148,27 @@ function getSetBonus(stat){
   return total;
 }
 
+function getSetStatName(key){
+  return ({
+    atkPct:'공격력',
+    hpPct:'최대 HP',
+    critRate:'치명타 확률',
+    critDmg:'치명타 피해',
+    goldBonus:'골드 획득',
+    expBonus:'경험치 획득',
+    bossDmg:'보스 피해'
+  })[key] || key;
+}
 function getSetInfo(item){
   const set = EQUIP_SETS.find(x => x.id === item.setId);
   if(!set) return '';
   const count = Object.values(S.equip).filter(it => it && it.setId === set.id).length;
   const activeEffects = [];
   Object.entries(set.effects).forEach(([need, effect]) => {
-    if(count >= Number(need)) Object.entries(effect).forEach(([k,v]) => activeEffects.push(`${need}세트 ${k}:${v}%`));
+    if(count >= Number(need)) Object.entries(effect).forEach(([k,v]) => activeEffects.push(need+'세트 '+getSetStatName(k)+' +'+v+'%'));
   });
   const active = activeEffects.length ? activeEffects.join(' · ') : '2세트부터 효과 활성화';
-  return `${set.name} (${count}/5) · ${active}`;
+  return set.name+' ('+count+'/5) · '+active;
 }
 
 /* 펫 데이터는 js/pet-data.js에서 관리합니다. */
@@ -4867,7 +4878,10 @@ function rerollSingleOption(source, id, index){
   const opt=pick(pool);
   it.options[index]={key:opt.key,name:opt.name,value:Math.floor(rand(opt.min,opt.max+1))};
   S.gold-=cost;
-  closeItemSheet(); renderAll(); saveGame();
+  closeItemSheet();
+  renderAll();
+  if(source==='equip') renderEnhance();
+  saveGame();
   toast(`✨ 옵션 변경 완료! 💰-${fmt(cost)}`);
 }
 function renderOptionRows(it, source, id){
@@ -6132,6 +6146,11 @@ function renderEnhance(){
             <span style="font-size:11px; color:var(--gold)">스탯 +${it.enhance*6}%</span>
           </div>
           <button class="enhBtn" onclick="doEnhance('${s.key}', ${cost})">강화하기 (💎 ${fmt(cost)} 필요)</button>
+          <div style="margin-top:8px;padding-top:7px;border-top:1px solid rgba(255,255,255,.08);">
+            <div style="font-size:10px;color:#ffd166;font-weight:900;margin-bottom:4px;">✨ 추가 옵션 변경</div>
+            <div style="font-size:9px;color:var(--sub);margin-bottom:5px;">장비의 추가 옵션을 골드로 개별 변경합니다.</div>
+            ${renderOptionRows(it,'equip',s.key)}
+          </div>
         </div>`;
     } else {
       const t = it.transcend || 0;
