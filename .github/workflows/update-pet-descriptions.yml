@@ -1,0 +1,84 @@
+name: Update pet damage descriptions
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  update:
+    if: "!contains(github.event.head_commit.message, '[skip pet desc]')"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Update PET_PRESETS descriptions
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+
+          p = Path('www/index.html')
+          s = p.read_text(encoding='utf-8')
+
+          updates = {
+            'pet_dog': '새 몬스터와의 첫 공격에 플레이어 기본 공격 피해 +25%',
+            'pet_fox': '치명타 확률 +6%',
+            'pet_sloth': '적의 3번째 공격마다 받는 피해 35% 감소',
+            'pet_pig': '잡템 판매가 +18%',
+            'pet_wolf': '3번째 공격마다 공격력의 120%를 직접 가하는 추가 타격(EXTRA_HIT) 발생 (스테이지마다 초기화)',
+            'pet_turtle': '모든 적의 공격 피해를 18% 감소',
+            'pet_owl': '전투 경험치 +15%',
+            'pet_panda': '가한 피해의 2% 회복',
+            'pet_panther': '4번째 공격마다 공격력의 30%를 직접 가하는 추가 타격(EXTRA_HIT) 발생 (스테이지마다 초기화)',
+            'pet_dragon_baby': '공격 시 24% 확률로 적 최대 HP의 4%를 최대 HP 비례 피해(MAX_HP_RATIO)로 추가 (보스는 최대 HP의 1.5%)',
+            'pet_lion': '보스 대상 플레이어 피해 +22%',
+            'pet_eagle': '3번째 공격마다 공격력의 22%를 직접 가하는 추가 타격(EXTRA_HIT) 발생 (스테이지마다 초기화)',
+            'pet_frost_mimic': '첫 적 공격 및 이후 6번째 적 공격마다 받는 피해 70% 감소',
+            'pet_treasure_goblin': '몬스터 처치 시 18% 확률로 골드 3배',
+            'pet_berserk_hamster': '플레이어 HP 30% 이하에서 플레이어 기본 공격 피해 +18%',
+            'pet_mirror_fox': '적의 5번째 공격마다 받는 피해 70% 감소 · 다음 플레이어 공격 피해 +70%',
+            'myth_iron_dragon': '공격력 +75% (능력치형 · 직접 피해 없음)',
+            'myth_guardian': '방어력 +95% (능력치형 · 직접 피해 없음)',
+            'myth_world_tree': '최대 HP +120% (능력치형 · 직접 피해 없음)',
+            'myth_sky_emperor': '치명타 피해 +100% (능력치형 · 직접 피해 없음)',
+            'myth_fate_book': '전투 경험치 +80% (능력치형 · 직접 피해 없음)',
+            'myth_treasure_god': '골드 획득 +130% (능력치형 · 직접 피해 없음)',
+            'origin_meteor': '방어력 +260% · 적의 3번째 공격마다 받는 피해 45% 감소 (피해 계산은 방어/받는 피해 감소 계열)',
+            'origin_time': '방어력 +240% · 적의 4번째 공격마다 다음 피해 70% 감소',
+            'origin_void': '방어력 +1000% · 피해를 HP로 환산할 때 피해 상한을 두지 않는 공허 방어',
+            'origin_soul': '방어력 +230% · 피격할 때마다 최대 HP의 3% 회복',
+            'origin_chaos': '방어력 +250% · HP 50% 이하에서 받는 피해 40% 추가 감소',
+            'origin_star': '방어력 +300% · 모든 받는 피해 20% 감소',
+            'absolute_void': '같은 적을 연속 공격할 때마다 직접 펫 피해(PET_DAMAGE) +25%, 최대 10중첩 · 10중첩 후 다음 공격에 플레이어 피해의 1000%를 직접 펫 피해로 추가',
+            'absolute_executioner': '적 HP 30% 이하에서 플레이어 피해의 1000%를 고정 피해(FIXED)로 직접 추가 · 공격력/보스 피해/펫 피해 증가의 영향을 받지 않음',
+            'absolute_barrage': '2번째 공격마다 플레이어 피해의 60%를 직접 추가 타격(EXTRA_HIT)으로 6회 발생',
+            'absolute_crit': '공격 피해의 50%를 저장 · 저장량이 최대 HP의 100%에 도달하면 저장량의 100%를 직접 펫 피해(PET_DAMAGE)로 방출하고 초과분은 버림',
+            'pet_zero': 'ZERO 전용 무한 콤보: 1~5타마다 서로 다른 직접 펫 피해(PET_DAMAGE)와 회복 효과 발동 · 피격되어도 콤보 유지',
+            'zero1': '플레이어 직접 공격 피해만 복제 · 1차 복제 100% 확률, 복제 피해는 원본의 70%, 이후 복제마다 확률 10%p 감소 · 복제 피해는 직접 펫 피해(PET_DAMAGE)로 기록',
+            'alpha_zero': '치명적인 피해를 처음 받을 때 공격을 완전히 무효화하고 전투 시작 시점의 HP로 복구 · 디버프 제거 · 전투당 1회',
+            'zero999': '치명상 시 9연격 · 1~8타: 최대 HP의 1% + 공격력의 10% · 9타: 최대 HP의 5% + 공격력의 300% · HP 비례 피해(MAX_HP_RATIO)와 공격력 비례 피해를 합산한 ZERO999 전용 피해',
+            'zeroOmega': '받는 피해의 40%를 확정 흡수해 저장 · 다음 일반 공격에 저장량의 200%를 직접 펫 피해(PET_DAMAGE)로 반사 · 최대 HP +80%, 방어력 +80%',
+            'error': '플레이어 일반 공격에만 반응 · 공격력의 100%를 고정 피해(FIXED)로 직접 추가 · 방어력과 치명타 무시 · ZERO999 9연격에는 반응하지 않음',
+          }
+
+          for pid, desc in updates.items():
+              pattern = rf"(\{{[^\n]*id:'{re.escape(pid)}'[^\n]*?desc:')[^']*(')"
+              s, n = re.subn(pattern, lambda m, d=desc: m.group(1) + d.replace("'", "\\'") + m.group(2), s, count=1)
+              if n != 1:
+                  print(f'WARN: {pid}: matched {n}')
+
+          p.write_text(s, encoding='utf-8')
+          PY
+      - name: Commit changes
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add www/index.html
+          if git diff --cached --quiet; then
+            echo 'No pet description changes.'
+            exit 0
+          fi
+          git commit -m 'Update pet descriptions for damage taxonomy [skip pet desc]'
+          git push
