@@ -2209,7 +2209,7 @@ const PET_PRESETS = [
   // 절대극 — 공격 전용 6종
 
   {id:'absolute_void',grade:7,name:'절대극 학살자',ic:'🌑',effect:'absSlaughter',val:25,desc:'같은 적을 연속 공격할 때마다 피해 +25%, 최대 10중첩. 10중첩 달성 후 다음 공격 추가 피해 +1000%'},
-  {id:'absolute_executioner',grade:7,name:'절대극 처형자',ic:'⚔️',effect:'absExecute',val:500,desc:'적 HP 30% 이하에서 플레이어 피해의 500%를 처형자의 직접 추가 피해로 가한다.'},
+  {id:'absolute_executioner',grade:7,name:'절대극 처형자',ic:'⚔️',effect:'absExecute',val:1000,desc:'적 HP 30% 이하에서 플레이어 피해의 1000%를 처형자의 고정 피해로 직접 가한다.'},
 
   {id:'absolute_barrage',grade:7,name:'절대극 폭격자',ic:'🌀',effect:'absBarrage',val:60,desc:'2번째 공격마다 플레이어 피해의 60%를 직접 추가 피해로 6회 연속 가한다.'},
   {id:'absolute_crit',grade:7,name:'절대극 파괴신',ic:'🔴',effect:'absDestroy',val:50,desc:'공격 피해의 50%를 저장. 저장량이 최대 HP의 100%에 도달하면 저장량의 100%를 추가 피해로 방출하고 초과분은 버림'},
@@ -3777,8 +3777,10 @@ function combatTick(){
     triggerPetEffectVisual('absSlaughter');
   }
   if(getPetEffectValue('absExecute') > 0 && S.monster.hp/S.monster.maxHp <= 0.30){
+    // 처형자: 플레이어 피해를 기준으로 계산하지만 결과는 고정 피해.
+    // 고정 피해는 공격력/보스/펫/최종 피해 증가의 영향을 받지 않는다.
     const petDmg=Math.max(1,Math.round(zeroOnePlayerDamage * getPetEffectValue('absExecute') / 100));
-    dmg += petDmg; recordPetDamage('absolute_executioner',petDmg);
+    dmg += petDmg; recordPetDamage('absolute_executioner',petDmg,DAMAGE_TYPES.FIXED);
     spawnDmgText('monsterWrap','처형: +'+petDmg.toLocaleString(),'dmgText extraDmg');
     triggerPetEffectVisual('absExecute');
   }
