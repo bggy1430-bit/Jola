@@ -6781,9 +6781,19 @@ document.addEventListener('click', function(e){
     S.equippedPets=(S.equippedPets||[]).map(id=>id==='gold_dragon'?'gold_roulette':id).filter(id=>id!=='error'&&id!=='origin_soul');
     if(S.pets){if(S.pets.gold_dragon!=null&&S.pets.gold_roulette==null)S.pets.gold_roulette=S.pets.gold_dragon;delete S.pets.gold_dragon;delete S.pets.error;delete S.pets.origin_soul;}
   }catch(e){}
+  // 황금 재물룰렛은 공격력에 섞지 않고 "최종 피해 증가"로만 적용한다.
+  // 고정/최대HP 비례/현재HP 비례 피해에는 적용하지 않는다.
   const _calcAtk=window.calcAtk;
-  if(typeof _calcAtk==='function')window.calcAtk=function(){let v=_calcAtk();const stacks=Math.min(5,Number(S.goldCoinStacks||0));if(stacks&&(S.equippedPets||[]).includes('gold_slime'))v=Math.round(v*(1+.12*stacks));if(Number(S.goldRouletteDamageMult||1)>1)v=Math.round(v*S.goldRouletteDamageMult);return v;};
-  function rr(){const r=Math.random()*100;if(r<30)return{icon:'🪙',name:'GOLD',dmg:1.5,gold:1,desc:'+150% 추가 피해 + 스테이지×10 골드'};if(r<55)return{icon:'⚔️',name:'BATTLE',dmg:2,gold:1,desc:'+200% 추가 피해'};if(r<75)return{icon:'💰',name:'대박',dmg:3,gold:2,desc:'+300% 추가 피해 + 처치 골드 ×2'};if(r<90)return{icon:'💎',name:'보물',dmg:4,gold:3,desc:'+400% 추가 피해 + 처치 골드 ×3'};if(r<98)return{icon:'🔥',name:'JACKPOT',dmg:6,gold:5,desc:'+600% 추가 피해 + 처치 골드 ×5'};return{icon:'💀',name:'MISS',dmg:1,gold:1,desc:'효과 없음'};}
+  if(typeof _calcAtk==='function')window.calcAtk=function(){let v=_calcAtk();const stacks=Math.min(5,Number(S.goldCoinStacks||0));if(stacks&&(S.equippedPets||[]).includes('gold_slime'))v=Math.round(v*(1+.12*stacks));return v;};
+  function rr(){
+    const r=Math.random()*100;
+    if(r<30)return{icon:'🪙',name:'GOLD',dmg:1.20,gold:2,desc:'최종 피해 ×1.2 + 스테이지 골드 ×2'};
+    if(r<55)return{icon:'⚔️',name:'BATTLE',dmg:1.35,gold:1,desc:'최종 피해 ×1.35'};
+    if(r<75)return{icon:'💰',name:'대박',dmg:1.50,gold:3,desc:'최종 피해 ×1.5 + 스테이지 골드 ×3'};
+    if(r<90)return{icon:'💎',name:'보물',dmg:1.70,gold:5,desc:'최종 피해 ×1.7 + 스테이지 골드 ×5'};
+    if(r<98)return{icon:'🔥',name:'JACKPOT',dmg:2.00,gold:10,desc:'최종 피해 ×2 + 스테이지 골드 ×10'};
+    return{icon:'💀',name:'MISS',dmg:1,gold:1,desc:'효과 없음'};
+  }
   function roulette(){if(!(S.equippedPets||[]).includes('gold_roulette'))return;const x=rr();S.goldRouletteDamageMult=x.dmg;S.goldRouletteGoldMult=x.gold;let o=document.getElementById('goldRouletteOverlay');if(!o){o=document.createElement('div');o.id='goldRouletteOverlay';o.innerHTML='<div class="grBox"><div class="grTitle">🎰 황금 재물룰렛</div><div class="grWheel">🪙 ⚔️ 💰 💎 🔥 💀</div><div class="grSpin">SPINNING...</div><div class="grResult"></div></div>';document.body.appendChild(o);}o.querySelector('.grResult').innerHTML=x.icon+' '+x.name+'<small>'+x.desc+'</small>';o.classList.remove('show','jackpot');void o.offsetWidth;o.classList.add('show');if(x.name==='JACKPOT')o.classList.add('jackpot');setTimeout(()=>o.classList.remove('show'),2400);}
   const _spawn=window.spawnMonster;if(typeof _spawn==='function')window.spawnMonster=function(){S.goldRouletteDamageMult=1;S.goldRouletteGoldMult=1;const r=_spawn.apply(this,arguments);setTimeout(roulette,40);return r;};
   const _kill=window.onMonsterKilled;if(typeof _kill==='function')window.onMonsterKilled=function(){const m=Math.max(1,Number(S.goldRouletteGoldMult||1));if(m>1){const before=S.gold;S.goldRouletteGoldMult=1;const r=_kill.apply(this,arguments);const earned=Math.max(0,S.gold-before);S.gold+=earned*(m-1);S.goldRouletteDamageMult=1;return r;}const r=_kill.apply(this,arguments);S.goldRouletteDamageMult=1;return r;};
