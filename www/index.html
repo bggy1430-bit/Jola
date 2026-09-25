@@ -3954,7 +3954,7 @@ function combatTick(){
         spawnDmgText('playerWrap','VOID HEAL +'+heal.toLocaleString(),'dmgText extraDmg');
       }
     }
-    if(has('originChaosGuard') && S.player.hp/calcMaxHp()<=0.50 && mdmg>0){ mdmg=Math.round(mdmg*0.60); spawnDmgText('playerWrap','CHAOS GUARD!','dmgText extraDmg'); triggerPetEffectVisual('originChaosGuard'); }
+    if(has('originChaosGuard') && S.player.hp/calcMaxHp()<=0.50 && mdmg>0){ const chaosReduction=Math.max(0,Math.min(100,getPetEffectValue('originChaosGuard'))); mdmg=applyReceivedDamageReduction(mdmg,chaosReduction); spawnDmgText('playerWrap','혼돈룡!','dmgText extraDmg'); triggerPetEffectVisual('originChaosGuard'); }
     if(has('originStarGuard') && mdmg>0){ mdmg=Math.round(mdmg*0.80); if(enemyHit%4===0) triggerPetEffectVisual('originStarGuard'); }
     if((S.originSoulStacks||0)>0 && mdmg>0){ mdmg=Math.round(mdmg * (1 - Math.min(0.15,(S.originSoulStacks||0)*0.03))); }
     if(hasPetSynergy('origin_trinity') && mdmg>0){ mdmg=Math.round(mdmg*0.90); triggerPetEffectVisual('origin_trinity'); }
