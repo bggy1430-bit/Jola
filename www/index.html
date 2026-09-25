@@ -2976,7 +2976,7 @@ function spawnMonster(effect=true){
   }
   let fullMonsterName = mt.isBoss ? `[BOSS] ${chosenTitles.join(' ')} ${mt.name}` : (isRare ? `[RARE] ${chosenTitles.join(' ')} ${mt.name}` : `[${chosenTitles.join(' ')}] ${mt.name}`);
 
-  const hp = Math.max(15, Math.round(25 * (mt.isBoss ? bossHpScale : mt.hpM * hpScale) * 2 * rareMultHp));
+  const hp = Math.max(15, Math.round(25 * (mt.isBoss ? bossHpScale : mt.hpM * hpScale) * rareMultHp));
   const atk = Math.max(2, Math.round(5.0 * mt.atkM * (mt.isBoss ? bossAtkScale : atkScale) * rareMultAtk));
 
   S.monster = { name:fullMonsterName, baseName:mt.name, ic:mt.ic, hp, maxHp:hp, atk, isBoss:mt.isBoss, isRare };
@@ -5253,7 +5253,7 @@ function playForgeFx(icon,label='FORGE!'){
 document.addEventListener('pointerdown',()=>{ensureAudio();},{once:true});
 
 /* MYSTERY BOX */
-function boxCost(){ return Math.floor(150 + (S.mbox.pulls * 2.5)); }
+function boxCost(){ return Math.floor(150 + (S.mbox.pulls * 2)); }
 function updateBoxCost(){
   document.getElementById('boxCost').textContent = fmt(boxCost());
   document.getElementById('pullCountVal').textContent = S.mbox.pulls;
