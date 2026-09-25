@@ -2201,10 +2201,10 @@ const PET_PRESETS = [
   {id:'myth_fate_book',grade:5,name:'신화 운명의 서',ic:'📖',stat:'expBonus',effect:'statOnly',val:80,desc:'전투에서 얻는 경험치가 80% 증가합니다. 전투 피해 계산에는 직접 영향을 주지 않습니다.'},
 
   // 태초 — 피해 감소/생존 특화 6종
-  {id:'origin_meteor',grade:6,name:'태초 운석핵',ic:'☄️',effect:'originMeteorGuard',val:260,desc:'방어력이 260% 증가합니다. 또한 적의 세 번째 공격마다 그 공격으로 받는 피해가 45% 감소합니다. 방어력 증가와 받는 피해 감소가 각각의 방어 계산 단계에서 적용됩니다.'},
+  {id:'origin_meteor',grade:6,name:'태초 운석핵',ic:'☄️',effect:'originMeteorGuard',val:260,desc:'적의 세 번째 공격마다 그 공격으로 받는 피해가 45% 감소합니다. 이 효과는 공격을 막는 것이 아니라 해당 공격의 실제 피해량을 45% 줄입니다.'},
 
   {id:'origin_chaos',grade:6,name:'태초 혼돈룡',ic:'🐉',effect:'originChaosGuard',val:250,desc:'방어력이 250% 증가합니다. 플레이어 체력이 최대 체력의 50% 이하가 되면 받는 피해가 추가로 40% 감소합니다. 체력 조건이 충족될 때만 추가 감소가 적용됩니다.'},
-  {id:'origin_star',grade:6,name:'태초 성운왕',ic:'🌌',effect:'originStarGuard',val:300,desc:'방어력이 300% 증가합니다. 동시에 적에게서 받는 모든 피해가 20% 감소합니다. 방어력 증가와 별도의 받는 피해 감소 효과가 함께 적용됩니다.'},
+  {id:'origin_star',grade:6,name:'태초 성운왕',ic:'🌌',effect:'originStarGuard',val:300,desc:'적에게서 받는 모든 피해가 20% 감소합니다. 이 효과는 적의 공격 자체를 없애는 것이 아니라 실제로 받는 피해량을 줄입니다.'},
 
   // 절대극 — 공격 전용 6종
 
@@ -2218,7 +2218,7 @@ const PET_PRESETS = [
   {id:'zero1',grade:8,name:'ZERO1',ic:'⚫',effect:'zeroOne',val:100,desc:'플레이어가 직접 가한 공격만 복제합니다. 첫 번째 복제는 100% 확률로 발생하며 복제 피해는 원래 공격 피해의 70%입니다. 이후 복제가 이어질 때마다 발동 확률이 10%씩 감소합니다. 복제된 공격은 원래 플레이어 공격과 합쳐지지 않고 별도의 펫 피해로 기록됩니다.'}
   ,{id:'alpha_zero',grade:8,name:'ALPHA ZERO',ic:'🔷',effect:'zeroReset',val:1,desc:'치명적인 피해를 처음 받을 때 그 피해를 완전히 무효화하고, 전투가 시작됐을 때의 체력으로 되돌립니다. 동시에 전투 중 적용된 해로운 효과를 제거합니다. 이 효과는 한 전투에서 한 번만 발동합니다.'},
 {id:'zero999',grade:8,name:'ZERO999',ic:'⚡',effect:'limitBreak',val:9,desc:'치명적인 피해를 받을 상황이 되면 총 아홉 번의 연속 공격을 가합니다. 첫 번째부터 여덟 번째 공격은 각각 적 최대 체력의 1%와 플레이어 공격력의 10%를 합산해 계산하고, 아홉 번째 공격은 적 최대 체력의 5%와 플레이어 공격력의 300%를 합산해 계산합니다. 최대 체력에 비례하는 피해와 공격력에 비례하는 피해를 함께 사용하는 제로999 전용 공격입니다.'},
-{id:'zeroOmega',grade:6,name:'태초 공허왕',ic:'♾️',effect:'zeroOmega',val:40,stat:'hpBonus',statVal:80,levelScale:0,desc:'적에게서 받는 피해의 40%를 확정적으로 흡수해 저장합니다. 다음 일반 공격을 할 때 저장한 피해량의 200%를 직접 펫 피해로 반사합니다. 추가로 플레이어 최대 체력과 방어력이 각각 80% 증가합니다. 피해 흡수는 확률에 의존하지 않습니다.'},
+{id:'zeroOmega',grade:6,name:'태초 공허왕',ic:'♾️',effect:'zeroOmega',val:40,stat:'hpBonus',statVal:80,levelScale:0,desc:'적에게서 받는 피해의 40%를 확정적으로 흡수해 저장합니다. 다음 일반 공격을 할 때 저장한 피해량의 200%를 직접 펫 피해로 반사합니다. 추가로 플레이어의 최대 체력이 80% 증가합니다. 피해 흡수는 확률에 의존하지 않습니다.'},
 {id:'gold_slime',grade:9,name:'골드 슬라임',ic:'🟡',effect:'goldCoin',val:220,desc:'공격할 때마다 금화 스택을 쌓는다. 최대 5중첩, 중첩마다 공격력 +12%. 3번째 공격마다 금화 충격파도 발동하며 처치 시 추가 골드를 준다.'},
 {id:'gold_goblin',grade:9,name:'황금 고블린',ic:'👺',effect:'goldPickpocket',val:250,desc:'4번째 공격마다 공격력의 250% 강탈 공격. 스테이지 × 10골드를 즉시 훔친다.'},
 {id:'gold_mimic',grade:9,name:'황금 미믹',ic:'📦',effect:'goldJackpot',val:500,desc:'매 공격마다 20% 확률로 공격력의 500% 추가 피해. 발동 공격으로 처치하면 처치 골드가 3배가 된다.'},
