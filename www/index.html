@@ -4913,7 +4913,7 @@ function openItemSheet(id){
   const essenceVal = isJunk ? (it.grade+1)*2 : 0;
   const g = GRADES[it.grade];
   const synthMatches = !isJunk ? S.bagEquip.filter(x => x.id !== it.id && x.kind === it.kind && x.grade === it.grade).length : 0;
-  const synthCost = !isJunk ? Math.floor(Math.pow(it.grade + 1, 2) * 100) : 0;
+  const synthCost = !isJunk ? Math.floor(Math.pow(it.grade + 1, 2) * 500) : 0;
   const canSynthesize = !isJunk && it.enhance < 20 && synthMatches >= 2;
 
   document.getElementById('itemSheet').innerHTML = `
@@ -4978,7 +4978,7 @@ function synthesizeEquip(id){
   const materials = S.bagEquip.filter(x => x.id !== id && x.kind === target.kind && x.grade === target.grade).slice(0,2);
   if(materials.length < 2){ toast('같은 등급·같은 종류의 장비 2개가 더 필요합니다.'); return; }
 
-  const cost = Math.floor(Math.pow(target.grade + 1, 2) * 100);
+  const cost = Math.floor(Math.pow(target.grade + 1, 2) * 500);
   if(S.soulStones < cost){ toast(`💎 영혼석이 부족합니다! 합성 강화 필요: ${fmt(cost)}`); return; }
 
   S.soulStones -= cost;
@@ -5657,7 +5657,7 @@ function buyFixedWeapon(grade, cost){
 }
 
 /* GOLD PASSIVE SHOP */
-function buyBreakProtectionTicket(){const cost=5000;if((S.soulStones||0)<cost){toast('💎 영혼석이 부족합니다! 필요: 5,000');return;}S.soulStones-=cost;S.breakProtectionTickets=Math.max(0,Number(S.breakProtectionTickets||0))+1;renderGoldShop();renderAll();saveGame();toast('🛡️ 파괴방지권 1개 구매 완료!');}
+function buyBreakProtectionTicket(){const cost=25000;if((S.soulStones||0)<cost){toast('💎 영혼석이 부족합니다! 필요: 5,000');return;}S.soulStones-=cost;S.breakProtectionTickets=Math.max(0,Number(S.breakProtectionTickets||0))+1;renderGoldShop();renderAll();saveGame();toast('🛡️ 파괴방지권 1개 구매 완료!');}
 function renderGoldShop(){
   const pane = document.getElementById('shopGoldPane');
   const atkCost = Math.floor(300 * Math.pow(1.3, S.research.atkLv));
@@ -5983,7 +5983,7 @@ function renderSynthesis(){
     const preview = Object.assign({}, equipped, {synthLv:synthLv+1});
     const afterValue = itemStatValue(preview);
     const actualPct = beforeValue > 0 ? ((afterValue / beforeValue - 1) * 100) : 10;
-    const cost = Math.floor((equipped.grade + 1) * 100);
+    const cost = Math.floor((equipped.grade + 1) * 500);
     const can = !!material;
 
     html += `
@@ -6124,7 +6124,7 @@ function renderEnhance(){
     const isTranscend = it.enhance >= 20;
 
     if(!isTranscend){
-      const cost = Math.floor((10 + Math.pow(it.enhance, 1.45) * 6) / 2);
+      const cost = Math.floor(((10 + Math.pow(it.enhance, 1.45) * 6) / 2) * 5);
       html += `
         <div class="enhCard">
           <div class="er-top">
@@ -6137,7 +6137,7 @@ function renderEnhance(){
       const t = it.transcend || 0;
       const tMax = 5;
       if(t < tMax){
-        const cost = Math.floor((t + 1) * 350 / 2);
+        const cost = Math.floor((t + 1) * 350 / 2 * 5);
         const transRates = [50, 38, 28, 18, 10];
         const transRate = transRates[t] || 10;
         html += `
@@ -6154,7 +6154,7 @@ function renderEnhance(){
         const ultimateRates = [50, 40, 30, 20, 15, 10, 7, 4, 2, 1];
         const uRate = ultimateRates[u] || 1;
         if(u < uMax){
-          const uCost = (u + 1) * 500;
+          const uCost = (u + 1) * 2500;
           html += `
             <div class="enhCard" style="border-color:#ff8c00;">
               <div class="er-top">
@@ -6214,7 +6214,7 @@ function doEnhanceContinuousAll(){
   ['weapon','helmet','armor','gloves','accessory'].forEach(slotKey=>{
     const it=S.equip[slotKey];if(!it||it.enhance>=20)return;
     while(it.enhance<20){
-      const cost=Math.floor((10+Math.pow(it.enhance,1.45)*6)/2);
+      const cost=Math.floor(((10+Math.pow(it.enhance,1.45)*6)/2)*5);
       if(S.soulStones<cost)break;
       S.soulStones-=cost;total+=cost;it.enhance++;done++;
     }
