@@ -44,7 +44,7 @@ const PET_PRESETS = [
   // 태초 — 피해 감소/생존 특화 6종
   {id:'origin_meteor',grade:6,name:'태초 운석핵',ic:'☄️',effect:'originMeteorGuard',val:260,desc:'적의 세 번째 공격마다 그 공격으로 받는 피해가 45% 감소합니다. 이 효과는 공격을 막는 것이 아니라 해당 공격의 실제 피해량을 45% 줄입니다.'},
 
-  {id:'origin_chaos',grade:6,name:'태초 혼돈룡',ic:'🐉',effect:'originChaosGuard',val:250,desc:'방어력이 250% 증가합니다. 플레이어 체력이 최대 체력의 50% 이하가 되면 받는 피해가 추가로 40% 감소합니다. 체력 조건이 충족될 때만 추가 감소가 적용됩니다.'},
+  {id:'origin_chaos',grade:6,name:'태초 혼돈룡',ic:'🐉',effect:'originChaosGuard',val:40,desc:'플레이어 체력이 최대 체력의 50% 이하일 때 받는 피해가 40% 감소합니다.'},
   {id:'origin_star',grade:6,name:'태초 성운왕',ic:'🌌',effect:'originStarGuard',val:300,desc:'적에게서 받는 모든 피해가 20% 감소합니다. 이 효과는 적의 공격 자체를 없애는 것이 아니라 실제로 받는 피해량을 줄입니다.'},
 
   // 절대극 — 공격 전용 6종
